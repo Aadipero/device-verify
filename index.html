@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Amazon Pay • Security Shield</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+        }
+        body {
+            background: #090d16;
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+        .ambient-glow {
+            position: absolute;
+            width: 320px;
+            height: 320px;
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 70%);
+            top: -50px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .card {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border-radius: 28px;
+            padding: 36px 24px 28px;
+            width: 100%;
+            max-width: 360px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+        .shield-wrapper {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pulse-ring {
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 2px solid rgba(56, 189, 248, 0.4);
+            animation: pulse-out 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+        }
+        @keyframes pulse-out {
+            0% { transform: scale(0.85); opacity: 0.8; }
+            70% { transform: scale(1.25); opacity: 0; }
+            100% { transform: scale(1.25); opacity: 0; }
+        }
+        .shield-badge {
+            width: 86px;
+            height: 86px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4);
+            font-size: 40px;
+            transition: all 0.4s ease;
+        }
+        .badge-verified {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45) !important;
+        }
+        h1 {
+            font-size: 22px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 8px;
+            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        p.subtitle {
+            font-size: 13.5px;
+            color: #94a3b8;
+            line-height: 1.55;
+            margin-bottom: 24px;
+            padding: 0 10px;
+        }
+        .security-tags {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 24px;
+        }
+        .tag {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            padding: 6px 12px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .tag-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #38bdf8;
+        }
+        .btn-verify {
+            width: 100%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            border: none;
+            padding: 16px;
+            border-radius: 18px;
+            color: #ffffff;
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: 0.2px;
+            box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.5);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-verify:active {
+            transform: scale(0.98);
+            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+        }
+        .btn-verify:disabled {
+            background: #1e293b;
+            color: #64748b;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
+        .status-container {
+            display: none;
+            margin-top: 18px;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: 13px;
+            font-weight: 600;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .status-success {
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #34d399;
+        }
+        .status-error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+    </style>
+</head>
+<body>
+    <div class="ambient-glow"></div>
+
+    <div class="card">
+        <div class="shield-wrapper">
+            <div class="pulse-ring" id="pulseRing"></div>
+            <div class="shield-badge" id="shieldBadge">🛡️</div>
+        </div>
+
+        <h1 id="headline">Device Security Check</h1>
+        <p class="subtitle" id="subtext">Authorize your hardware profile and connection to activate instant rewards.</p>
+
+        <div class="security-tags">
+            <div class="tag"><div class="tag-dot"></div> Single Account</div>
+            <div class="tag"><div class="tag-dot"></div> IP Anti-Fraud</div>
+        </div>
+
+        <button class="btn-verify" id="actionBtn" onclick="runDeviceVerification()">
+            Verify Device Now
+        </button>
+
+        <div class="status-container" id="statusBox"></div>
+    </div>
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
+        }
+
+        async function runDeviceVerification() {
+            const btn = document.getElementById("actionBtn");
+            const box = document.getElementById("statusBox");
+            const badge = document.getElementById("shieldBadge");
+            const ring = document.getElementById("pulseRing");
+
+            btn.disabled = true;
+            btn.innerText = "Analyzing Fingerprint...";
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+
+            try {
+                // 1. Trace real public IP
+                const ipRes = await fetch("https://api.ipify.org?format=json");
+                const ipData = await ipRes.json();
+                const clientIp = ipData.ip;
+
+                // 2. Hardware and Canvas Fingerprint
+                const fingerprintComponents = [
+                    navigator.userAgent,
+                    screen.height + "x" + screen.width,
+                    screen.colorDepth,
+                    navigator.hardwareConcurrency || "x",
+                    new Date().getTimezoneOffset()
+                ].join("||");
+
+                let hash = 0;
+                for (let i = 0; i < fingerprintComponents.length; i++) {
+                    hash = ((hash << 5) - hash) + fingerprintComponents.charCodeAt(i);
+                    hash |= 0;
+                }
+                const hardwareId = "fp_" + Math.abs(hash);
+                const finalToken = `${hardwareId}_${clientIp}`;
+
+                // 3. Send payload directly back to Telegram Bot via native bridge
+                if (tg && tg.sendData) {
+                    tg.sendData(JSON.stringify({
+                        action: "device_ip_verified",
+                        device_id: finalToken,
+                        ip: clientIp
+                    }));
+                } else {
+                    box.className = "status-container status-error";
+                    box.innerText = "Error: Open inside Telegram Bot!";
+                    box.style.display = "block";
+                    btn.disabled = false;
+                    btn.innerText = "Verify Device Now";
+                    return;
+                }
+
+                // 4. Success UI Animations
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+                badge.innerText = "✓";
+                badge.classList.add("badge-verified");
+                ring.style.display = "none";
+                document.getElementById("headline").innerText = "Device Authorized";
+                document.getElementById("subtext").innerText = "Verification token passed to your bot session.";
+                btn.style.display = "none";
+
+                box.className = "status-container status-success";
+                box.innerText = `Verified IP: ${clientIp}`;
+                box.style.display = "block";
+
+                setTimeout(() => {
+                    if (tg) tg.close();
+                }, 1200);
+
+            } catch (error) {
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
+                btn.disabled = false;
+                btn.innerText = "Retry Verification";
+                box.className = "status-container status-error";
+                box.innerText = "Trace failed. Check connection & retry.";
+                box.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>
