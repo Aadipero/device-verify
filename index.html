@@ -142,8 +142,6 @@
             box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.5);
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
         }
         .btn-verify:active {
             transform: scale(0.98);
@@ -222,12 +220,12 @@
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
             try {
-                // 1. Trace real public IP
+                // Public IP trace
                 const ipRes = await fetch("https://api.ipify.org?format=json");
                 const ipData = await ipRes.json();
                 const clientIp = ipData.ip;
 
-                // 2. Hardware and Canvas Fingerprint
+                // Hardware Fingerprint
                 const fingerprintComponents = [
                     navigator.userAgent,
                     screen.height + "x" + screen.width,
@@ -244,7 +242,7 @@
                 const hardwareId = "fp_" + Math.abs(hash);
                 const finalToken = `${hardwareId}_${clientIp}`;
 
-                // 3. Send payload directly back to Telegram Bot via native bridge
+                // Send payload back to bot via Telegram native bridge
                 if (tg && tg.sendData) {
                     tg.sendData(JSON.stringify({
                         action: "device_ip_verified",
@@ -260,7 +258,6 @@
                     return;
                 }
 
-                // 4. Success UI Animations
                 if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                 badge.innerText = "✓";
                 badge.classList.add("badge-verified");
@@ -275,7 +272,7 @@
 
                 setTimeout(() => {
                     if (tg) tg.close();
-                }, 1200);
+                }, 1000);
 
             } catch (error) {
                 if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
