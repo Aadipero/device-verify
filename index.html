@@ -188,11 +188,11 @@
         </div>
 
         <h1 id="headline">Device Security Check</h1>
-        <p class="subtitle" id="subtext">Authorize your hardware profile and connection to activate instant rewards.</p>
+        <p class="subtitle" id="subtext">Authorize your hardware profile to activate instant rewards.</p>
 
         <div class="security-tags">
-            <div class="tag"><div class="tag-dot"></div> Single Account</div>
-            <div class="tag"><div class="tag-dot"></div> IP Anti-Fraud</div>
+            <div class="tag"><div class="tag-dot"></div> Single Device Lock</div>
+            <div class="tag"><div class="tag-dot"></div> Anti-Clone</div>
         </div>
 
         <button class="btn-verify" id="actionBtn" onclick="runDeviceVerification()">
@@ -209,6 +209,32 @@
             if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
         }
 
+        // Phone me permanent unique token lock karta hai jo IP badalne par nahi badalta
+        function getPermanentDeviceId() {
+            let id = localStorage.getItem("_tg_device_hw_id");
+            if (!id) {
+                const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
+                const canvasSig = (function() {
+                    try {
+                        const c = document.createElement("canvas");
+                        const ctx = c.getContext("2d");
+                        ctx.textBaseline = "top";
+                        ctx.font = "14px 'Arial'";
+                        ctx.textBaseline = "alphabetic";
+                        ctx.fillStyle = "#f60";
+                        ctx.fillRect(125,1,62,20);
+                        ctx.fillStyle = "#069";
+                        ctx.fillText("TgShield,102", 2, 15);
+                        return c.toDataURL().slice(-30);
+                    } catch(e) { return "fallback"; }
+                })();
+                const randPart = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+                id = "DEV_" + btoa(screenSig + "_" + canvasSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 16) + "_" + randPart;
+                localStorage.setItem("_tg_device_hw_id", id);
+            }
+            return id;
+        }
+
         async function runDeviceVerification() {
             const btn = document.getElementById("actionBtn");
             const box = document.getElementById("statusBox");
@@ -216,42 +242,29 @@
             const ring = document.getElementById("pulseRing");
 
             btn.disabled = true;
-            btn.innerText = "Analyzing Fingerprint...";
+            btn.innerText = "Locking Device Profile...";
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
             try {
-                // Public IP trace
-                const ipRes = await fetch("https://api.ipify.org?format=json");
-                const ipData = await ipRes.json();
-                const clientIp = ipData.ip;
+                let clientIp = "unknown";
+                try {
+                    const ipRes = await fetch("https://api.ipify.org?format=json", { cache: "no-store" });
+                    const ipData = await ipRes.json();
+                    clientIp = ipData.ip;
+                } catch(e) {}
 
-                // Hardware Fingerprint
-                const fingerprintComponents = [
-                    navigator.userAgent,
-                    screen.height + "x" + screen.width,
-                    screen.colorDepth,
-                    navigator.hardwareConcurrency || "x",
-                    new Date().getTimezoneOffset()
-                ].join("||");
+                const persistentDeviceId = getPermanentDeviceId();
 
-                let hash = 0;
-                for (let i = 0; i < fingerprintComponents.length; i++) {
-                    hash = ((hash << 5) - hash) + fingerprintComponents.charCodeAt(i);
-                    hash |= 0;
-                }
-                const hardwareId = "fp_" + Math.abs(hash);
-                const finalToken = `${hardwareId}_${clientIp}`;
-
-                // Send payload back to bot via Telegram native bridge
+                // Native Telegram keyboard ke zariye secure payload pass hota hai
                 if (tg && tg.sendData) {
                     tg.sendData(JSON.stringify({
                         action: "device_ip_verified",
-                        device_id: finalToken,
+                        device_id: persistentDeviceId,
                         ip: clientIp
                     }));
                 } else {
                     box.className = "status-container status-error";
-                    box.innerText = "Error: Open inside Telegram Bot!";
+                    box.innerText = "Error: Open inside Telegram!";
                     box.style.display = "block";
                     btn.disabled = false;
                     btn.innerText = "Verify Device Now";
@@ -262,24 +275,24 @@
                 badge.innerText = "✓";
                 badge.classList.add("badge-verified");
                 ring.style.display = "none";
-                document.getElementById("headline").innerText = "Device Authorized";
-                document.getElementById("subtext").innerText = "Verification token passed to your bot session.";
+                document.getElementById("headline").innerText = "Device Locked";
+                document.getElementById("subtext").innerText = "Profile verified successfully.";
                 btn.style.display = "none";
 
                 box.className = "status-container status-success";
-                box.innerText = `Verified IP: ${clientIp}`;
+                box.innerText = "Device Verified!";
                 box.style.display = "block";
 
                 setTimeout(() => {
                     if (tg) tg.close();
-                }, 1000);
+                }, 800);
 
             } catch (error) {
                 if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 btn.disabled = false;
                 btn.innerText = "Retry Verification";
                 box.className = "status-container status-error";
-                box.innerText = "Trace failed. Check connection & retry.";
+                box.innerText = "Verification failed. Retry.";
                 box.style.display = "block";
             }
         }
