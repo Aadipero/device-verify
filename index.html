@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Amazon Pay • Security Gateway</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -31,16 +31,12 @@
             position: absolute;
             width: 320px;
             height: 320px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 70%);
+            background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 70%);
             top: -50px;
             left: 50%;
             transform: translateX(-50%);
             pointer-events: none;
             z-index: 0;
-            transition: all 0.5s ease;
-        }
-        .glow-danger {
-            background: radial-gradient(circle, rgba(239, 68, 68, 0.35) 0%, rgba(185, 28, 28, 0.1) 50%, transparent 70%) !important;
         }
         .card {
             background: rgba(15, 23, 42, 0.85);
@@ -51,17 +47,16 @@
             border-radius: 28px;
             padding: 36px 24px 28px;
             width: 100%;
-            max-width: 360px;
+            max-width: 350px;
             text-align: center;
             position: relative;
             z-index: 1;
-            transition: all 0.4s ease;
         }
         .shield-wrapper {
             position: relative;
             width: 90px;
             height: 90px;
-            margin: 0 auto 24px;
+            margin: 0 auto 20px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -71,7 +66,7 @@
             inset: -8px;
             border-radius: 50%;
             border: 2px solid rgba(56, 189, 248, 0.4);
-            animation: pulse-out 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+            animation: pulse-out 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
         }
         @keyframes pulse-out {
             0% { transform: scale(0.85); opacity: 0.8; }
@@ -92,36 +87,38 @@
         }
         .badge-verified {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.5) !important;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45) !important;
         }
-        .badge-danger {
+        .badge-error {
             background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.5) !important;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.45) !important;
         }
         h1 {
             font-size: 21px;
             font-weight: 800;
             letter-spacing: -0.5px;
             margin-bottom: 8px;
-            color: #ffffff;
+            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         p.subtitle {
-            font-size: 13.5px;
+            font-size: 13px;
             color: #94a3b8;
             line-height: 1.55;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
             padding: 0 8px;
         }
         .security-tags {
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 24px;
+            margin-bottom: 22px;
         }
         .tag {
             background: rgba(30, 41, 59, 0.85);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 6px 12px;
+            padding: 5px 12px;
             border-radius: 12px;
             font-size: 11px;
             font-weight: 600;
@@ -153,14 +150,24 @@
         .btn-action:active {
             transform: scale(0.98);
         }
+        .btn-action:disabled {
+            background: #1e293b;
+            color: #64748b;
+            box-shadow: none;
+            cursor: not-allowed;
+        }
         .status-container {
             display: none;
             margin-top: 14px;
-            padding: 14px 16px;
-            border-radius: 16px;
+            padding: 12px 14px;
+            border-radius: 14px;
             font-size: 13px;
-            font-weight: 700;
-            line-height: 1.4;
+            font-weight: 600;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
         }
         .status-success {
             background: rgba(16, 185, 129, 0.15);
@@ -171,27 +178,29 @@
             background: rgba(239, 68, 68, 0.15);
             border: 1px solid rgba(239, 68, 68, 0.4);
             color: #f87171;
+            text-align: left;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
-    <div class="ambient-glow" id="glow"></div>
+    <div class="ambient-glow"></div>
 
-    <div class="card" id="card">
+    <div class="card">
         <div class="shield-wrapper">
             <div class="pulse-ring" id="pulseRing"></div>
             <div class="shield-badge" id="shieldBadge">🛡️</div>
         </div>
 
-        <h1 id="headline">Hardware Authorization</h1>
-        <p class="subtitle" id="subtext">Authenticating device profile for anti-clone security...</p>
+        <h1 id="headline">Hardware Integrity Check</h1>
+        <p class="subtitle" id="subtext">Authorize physical hardware profile to unlock instant rewards.</p>
 
         <div class="security-tags">
             <div class="tag"><div class="tag-dot"></div> Single Device Lock</div>
             <div class="tag"><div class="tag-dot"></div> Anti-Clone Gateway</div>
         </div>
 
-        <button class="btn-action" id="actionBtn" onclick="processVerification()">
+        <button class="btn-action" id="actionBtn" onclick="runAuthorization()">
             ⚡ Authorize Device Now 🛡️
         </button>
 
@@ -203,13 +212,12 @@
         if (tg) {
             tg.ready();
             tg.expand();
+            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
         }
 
-        // Live Railway Backend URL
-        const BACKEND_API = "https://amazon-bot-production-267d.up.railway.app/verify";
-
+        // Persistent hardware signature across dynamic IP changes
         function getPermanentDeviceId() {
-            let id = localStorage.getItem("_tg_hw_device_token");
+            let id = localStorage.getItem("_tg_device_hw_id");
             if (!id) {
                 const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
                 const canvasSig = (function() {
@@ -220,119 +228,100 @@
                         ctx.font = "14px 'Arial'";
                         ctx.fillStyle = "#f60";
                         ctx.fillRect(125,1,62,20);
-                        return c.toDataURL().slice(-25);
-                    } catch(e) { return "canv_err"; }
+                        return c.toDataURL().slice(-30);
+                    } catch(e) { return "fallback"; }
                 })();
                 const randPart = Math.random().toString(36).substring(2, 10);
-                id = "HW_" + btoa(screenSig + "_" + canvasSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) + "_" + randPart;
-                localStorage.setItem("_tg_hw_device_token", id);
+                id = "DEV_" + btoa(screenSig + "_" + canvasSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) + "_" + randPart;
+                localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
         }
 
-        async function processVerification() {
+        async function runAuthorization() {
             const btn = document.getElementById("actionBtn");
             const box = document.getElementById("statusBox");
             const badge = document.getElementById("shieldBadge");
             const ring = document.getElementById("pulseRing");
-            const glow = document.getElementById("glow");
+            const headline = document.getElementById("headline");
+            const subtext = document.getElementById("subtext");
 
             btn.disabled = true;
-            btn.innerText = "Verifying Device...";
+            btn.innerText = "Authenticating Profile...";
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
             const urlParams = new URLSearchParams(window.location.search);
-            const userId = tg?.initDataUnsafe?.user?.id || urlParams.get("uid");
+            const userId = urlParams.get("uid") || tg?.initDataUnsafe?.user?.id;
+            const persistentDeviceId = getPermanentDeviceId();
 
             if (!userId) {
-                btn.innerText = "Error: Open in Telegram";
-                return;
-            }
-
-            const deviceId = getPermanentDeviceId();
-
-            // Client-Side Multiple Account Protection
-            const storedUser = localStorage.getItem("_tg_registered_uid");
-            if (storedUser && String(storedUser) !== String(userId)) {
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                badge.innerText = "🛑";
-                badge.className = "shield-badge badge-danger";
-                glow.className = "ambient-glow glow-danger";
-                ring.style.display = "none";
-                btn.style.display = "none";
-
-                document.getElementById("headline").innerText = "Security Alert";
-                document.getElementById("subtext").innerText = "Multiple accounts detected on this phone.";
-
                 box.className = "status-container status-error";
-                box.innerText = "🛑 MULTIPLE ACCOUNTS DETECTED!\nThis device is already linked to another account.";
+                box.innerText = "⚠️ User profile not detected. Please open from inside Telegram bot.";
                 box.style.display = "block";
+                btn.disabled = false;
+                btn.innerText = "Retry Authorization";
                 return;
             }
 
-            // Server-Side Verification
             try {
-                const response = await fetch(BACKEND_API, {
+                // Railway verification API endpoint
+                const railwayApiUrl = "https://amazon-bot-production-267d.up.railway.app/verify";
+
+                const response = await fetch(railwayApiUrl, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         user_id: parseInt(userId),
-                        device_id: deviceId
+                        device_id: persistentDeviceId
                     })
                 });
 
-                const result = await response.json();
+                const resData = await response.json();
 
-                if (result.status === "ok") {
-                    localStorage.setItem("_tg_registered_uid", String(userId));
-
+                if (resData.status === "ok") {
+                    // VALID ACCOUNT: Auto Success & Close
                     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
                     badge.innerText = "✓";
-                    badge.className = "shield-badge badge-verified";
+                    badge.classList.add("badge-verified");
                     ring.style.display = "none";
+                    headline.innerText = "Hardware Authorized";
+                    subtext.innerText = "Access granted! Returning to bot...";
                     btn.style.display = "none";
-
-                    document.getElementById("headline").innerText = "Device Authorized";
-                    document.getElementById("subtext").innerText = "Hardware profile linked successfully.";
 
                     box.className = "status-container status-success";
-                    box.innerText = "✓ Verified! Unlocking Dashboard...";
+                    box.innerText = "✓ Verified! Unlocking dashboard...";
                     box.style.display = "block";
 
-                    // Automatically close WebApp sheet
+                    // Auto-close sheet after 400ms
                     setTimeout(() => {
                         if (tg) tg.close();
-                    }, 600);
+                    }, 400);
 
                 } else {
+                    // MULTIPLE ACCOUNT OR BLOCKED
                     if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                    badge.innerText = "🛑";
-                    badge.className = "shield-badge badge-danger";
-                    glow.className = "ambient-glow glow-danger";
+                    badge.innerText = "✕";
+                    badge.classList.add("badge-error");
                     ring.style.display = "none";
+                    headline.innerText = "Access Denied";
+                    subtext.innerText = "Anti-fraud gateway detected multiple accounts on this physical phone.";
                     btn.style.display = "none";
 
-                    document.getElementById("headline").innerText = "Access Denied";
-                    document.getElementById("subtext").innerText = result.message || "Device bound to another account.";
-
                     box.className = "status-container status-error";
-                    box.innerText = "🛑 " + (result.message || "Multiple accounts strictly prohibited!");
+                    box.innerText = "🛑 " + (resData.message || "This device is already bound to another Telegram account!");
                     box.style.display = "block";
                 }
 
             } catch (err) {
+                // Network or Connection Error Fallback
+                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
                 btn.disabled = false;
                 btn.innerText = "Retry Authorization";
                 box.className = "status-container status-error";
-                box.innerText = "Connection failed. Please retry.";
+                box.innerText = "⚠️ Unable to connect to verification server. Please retry.";
                 box.style.display = "block";
             }
         }
-
-        // Auto trigger upon page launch
-        window.addEventListener("DOMContentLoaded", () => {
-            setTimeout(processVerification, 350);
-        });
     </script>
 </body>
 </html>
