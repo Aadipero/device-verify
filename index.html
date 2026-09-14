@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Amazon Pay • Verification</title>
+    <title>Amazon Pay Security</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -21,20 +21,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            padding: 20px;
+            padding: 24px;
         }
         .card {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 24px;
-            padding: 30px 20px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+            border-radius: 28px;
+            padding: 36px 24px;
             width: 100%;
             max-width: 340px;
             text-align: center;
         }
-        .shield {
-            font-size: 50px;
-            margin-bottom: 15px;
+        .shield-badge {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            margin: 0 auto 20px;
         }
         h1 {
             font-size: 20px;
@@ -44,37 +52,30 @@
         p {
             font-size: 13px;
             color: #94a3b8;
-            margin-bottom: 25px;
+            margin-bottom: 24px;
             line-height: 1.5;
         }
-        .btn {
-            display: block;
+        .btn-action {
             width: 100%;
-            padding: 16px;
-            border-radius: 16px;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
             border: none;
-            background: linear-gradient(135deg, #0ea5e9, #2563eb);
-            color: #fff;
+            padding: 16px;
+            border-radius: 18px;
+            color: #ffffff;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
-            text-decoration: none;
-        }
-        .btn-confirm {
-            background: linear-gradient(135deg, #10b981, #059669);
-            margin-top: 12px;
-            display: none;
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="shield" id="icon">🛡️</div>
-        <h1 id="title">Security Check</h1>
-        <p id="desc">Tap below to authorize this device and unlock instant rewards.</p>
-
-        <button class="btn" id="verifyBtn" onclick="authorizeDevice()">⚡ Authorize Device Now 🛡️</button>
-        <a class="btn btn-confirm" id="confirmBtn" href="#">🚀 Start Bot Dashboard ➔</a>
+        <div class="shield-badge" id="icon">🛡️</div>
+        <h1 id="title">Hardware Authorization</h1>
+        <p id="desc">Authenticating device profile for anti-clone security...</p>
+        <button class="btn-action" id="actionBtn" onclick="autoVerify()">
+            ⚡ Authorize Device Now 🛡️
+        </button>
     </div>
 
     <script>
@@ -84,37 +85,42 @@
             tg.expand();
         }
 
-        function getPersistentDeviceId() {
+        function getPermanentDeviceId() {
             let id = localStorage.getItem("_tg_device_hw_id");
             if (!id) {
-                const screenData = screen.width + "x" + screen.height + "_" + screen.colorDepth;
+                const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
                 const randPart = Math.random().toString(36).substring(2, 10);
-                id = "D_" + btoa(screenData).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
+                id = "DEV_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
                 localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
         }
 
-        function authorizeDevice() {
-            const devId = getPersistentDeviceId();
-            const urlParams = new URLSearchParams(window.location.search);
-            const botUser = urlParams.get("bot") || "amazon_gc_bot";
+        function autoVerify() {
+            const btn = document.getElementById("actionBtn");
+            btn.disabled = true;
+            btn.innerText = "Verifying...";
 
-            document.getElementById("verifyBtn").style.display = "none";
-            document.getElementById("icon").innerText = "✅";
-            document.getElementById("title").innerText = "Device Authorized!";
-            document.getElementById("desc").innerText = "Tap the green button below to activate your bot:";
+            const deviceId = getPermanentDeviceId();
 
-            const confirmBtn = document.getElementById("confirmBtn");
-            const targetUrl = "https://t.me/" + botUser + "?start=v_" + devId;
-            confirmBtn.href = targetUrl;
-            confirmBtn.style.display = "block";
-
-            // Attempt seamless transfer
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(targetUrl);
+            // tg.sendData automatically closes the WebApp and passes payload directly to bot
+            if (tg && tg.sendData) {
+                tg.sendData(JSON.stringify({
+                    status: "verified",
+                    dev_id: deviceId
+                }));
+            } else {
+                // Fallback for direct browser testing
+                const urlParams = new URLSearchParams(window.location.search);
+                const botUsername = urlParams.get("bot") || "amazon_gc_bot";
+                window.location.href = `https://t.me/${botUsername}?start=v_${deviceId}`;
             }
         }
+
+        // Automatic run on page load
+        window.addEventListener("load", () => {
+            setTimeout(autoVerify, 200);
+        });
     </script>
 </body>
 </html>
