@@ -141,10 +141,6 @@
             letter-spacing: 0.2px;
             box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.5);
             cursor: pointer;
-            text-decoration: none;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             transition: all 0.2s ease;
         }
         .btn-action:active {
@@ -193,7 +189,6 @@
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
-            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
         }
 
         function getPermanentDeviceId() {
@@ -243,17 +238,16 @@
             box.innerText = "✓ Verified! Loading dashboard...";
             box.style.display = "block";
 
-            const deepLink = `tg://resolve?domain=${botUsername}&start=v_${persistentDeviceId}`;
+            const returnLink = `https://t.me/${botUsername}?start=v_${persistentDeviceId}`;
 
-            // Trigger deep link to bot
-            window.location.href = deepLink;
-
-            // Instant auto-close popup sheet
+            // Telegram Native Redirect: Closes webapp & executes bot command
             setTimeout(() => {
-                if (window.Telegram?.WebApp) {
-                    window.Telegram.WebApp.close();
+                if (tg && tg.openTelegramLink) {
+                    tg.openTelegramLink(returnLink);
+                } else {
+                    window.location.href = returnLink;
                 }
-            }, 100);
+            }, 250);
         }
     </script>
 </body>
