@@ -3,101 +3,78 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Amazon Pay • Hardware Integrity</title>
+    <title>Amazon Pay • Verification</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         body {
             background: #090d16;
             color: #f8fafc;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
+            justify-content: center;
+            padding: 20px;
         }
         .card {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
-            border-radius: 28px;
-            padding: 36px 24px 28px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 30px 20px;
             width: 100%;
-            max-width: 360px;
+            max-width: 340px;
             text-align: center;
-            position: relative;
-            z-index: 1;
         }
-        .shield-badge {
-            width: 86px;
-            height: 86px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4);
-            font-size: 40px;
-            margin: 0 auto 24px;
-        }
-        .badge-verified {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+        .shield {
+            font-size: 50px;
+            margin-bottom: 15px;
         }
         h1 {
-            font-size: 21px;
+            font-size: 20px;
             font-weight: 800;
             margin-bottom: 8px;
-            color: #fff;
         }
-        p.subtitle {
-            font-size: 13.5px;
+        p {
+            font-size: 13px;
             color: #94a3b8;
-            line-height: 1.55;
-            margin-bottom: 24px;
+            margin-bottom: 25px;
+            line-height: 1.5;
         }
-        .btn-action {
+        .btn {
+            display: block;
             width: 100%;
-            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
-            border: none;
             padding: 16px;
-            border-radius: 18px;
-            color: #ffffff;
+            border-radius: 16px;
+            border: none;
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
+            color: #fff;
             font-size: 15px;
             font-weight: 700;
             cursor: pointer;
+            text-decoration: none;
         }
-        .btn-close {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-            margin-top: 10px;
+        .btn-confirm {
+            background: linear-gradient(135deg, #10b981, #059669);
+            margin-top: 12px;
             display: none;
         }
     </style>
 </head>
 <body>
     <div class="card">
-        <div class="shield-badge" id="shieldBadge">🛡️</div>
-        <h1 id="headline">Hardware Integrity Check</h1>
-        <p class="subtitle" id="subtext">One-time authorization to activate Amazon rewards.</p>
+        <div class="shield" id="icon">🛡️</div>
+        <h1 id="title">Security Check</h1>
+        <p id="desc">Tap below to authorize this device and unlock instant rewards.</p>
 
-        <button class="btn-action" id="actionBtn" onclick="runDeviceVerification()">
-            ⚡ Authorize Device Now 🛡️
-        </button>
-
-        <button class="btn-action btn-close" id="manualCloseBtn" onclick="forceClose()">
-            ✕ Tap Here to Close & Return
-        </button>
+        <button class="btn" id="verifyBtn" onclick="authorizeDevice()">⚡ Authorize Device Now 🛡️</button>
+        <a class="btn btn-confirm" id="confirmBtn" href="#">🚀 Start Bot Dashboard ➔</a>
     </div>
 
     <script>
@@ -107,58 +84,36 @@
             tg.expand();
         }
 
-        function forceClose() {
-            if (window.Telegram?.WebApp) {
-                window.Telegram.WebApp.close();
-            }
-        }
-
-        function getPermanentDeviceId() {
+        function getPersistentDeviceId() {
             let id = localStorage.getItem("_tg_device_hw_id");
             if (!id) {
-                const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
+                const screenData = screen.width + "x" + screen.height + "_" + screen.colorDepth;
                 const randPart = Math.random().toString(36).substring(2, 10);
-                id = "D_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
+                id = "D_" + btoa(screenData).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
                 localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
         }
 
-        function runDeviceVerification() {
-            const btn = document.getElementById("actionBtn");
-            const closeBtn = document.getElementById("manualCloseBtn");
-            const badge = document.getElementById("shieldBadge");
-
-            btn.disabled = true;
-            btn.innerText = "Authorized!";
-            badge.innerText = "✓";
-            badge.classList.add("badge-verified");
-            
-            const persistentDeviceId = getPermanentDeviceId();
+        function authorizeDevice() {
+            const devId = getPersistentDeviceId();
             const urlParams = new URLSearchParams(window.location.search);
-            const botUsername = urlParams.get("bot") || "amazon_gc_bot";
+            const botUser = urlParams.get("bot") || "amazon_gc_bot";
 
-            // Telegram Link Dispatch
-            const targetUrl = "tg://resolve?domain=" + botUsername + "&start=v_" + persistentDeviceId;
-            
-            // Step 1: Trigger intent
-            const iframe = document.createElement("iframe");
-            iframe.style.display = "none";
-            iframe.src = targetUrl;
-            document.body.appendChild(iframe);
+            document.getElementById("verifyBtn").style.display = "none";
+            document.getElementById("icon").innerText = "✅";
+            document.getElementById("title").innerText = "Device Authorized!";
+            document.getElementById("desc").innerText = "Tap the green button below to activate your bot:";
 
-            // Step 2: Show immediate manual close if Android blocks auto-close
-            closeBtn.style.display = "block";
+            const confirmBtn = document.getElementById("confirmBtn");
+            const targetUrl = "https://t.me/" + botUser + "?start=v_" + devId;
+            confirmBtn.href = targetUrl;
+            confirmBtn.style.display = "block";
 
-            // Step 3: Hard Close WebApp
-            if (tg) {
-                tg.close();
+            // Attempt seamless transfer
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(targetUrl);
             }
-            setTimeout(() => {
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.close();
-                }
-            }, 150);
         }
     </script>
 </body>
