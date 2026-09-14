@@ -39,7 +39,7 @@
             z-index: 0;
         }
         .card {
-            background: rgba(15, 23, 42, 0.8);
+            background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
@@ -129,7 +129,7 @@
             border-radius: 50%;
             background: #38bdf8;
         }
-        .btn-verify {
+        .btn-action {
             width: 100%;
             background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
             border: none;
@@ -141,41 +141,31 @@
             letter-spacing: 0.2px;
             box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.5);
             cursor: pointer;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             transition: all 0.2s ease;
         }
-        .btn-verify:active {
+        .btn-action:active {
             transform: scale(0.98);
-            box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
         }
-        .btn-verify:disabled {
-            background: #1e293b;
-            color: #64748b;
-            box-shadow: none;
-            cursor: not-allowed;
+        .btn-success-return {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.5) !important;
         }
         .status-container {
             display: none;
-            margin-top: 18px;
-            padding: 14px 16px;
+            margin-top: 14px;
+            padding: 12px 16px;
             border-radius: 14px;
-            font-size: 14px;
-            font-weight: 700;
-            cursor: pointer;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
+            font-size: 13px;
+            font-weight: 600;
         }
         .status-success {
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.4);
             color: #34d399;
-        }
-        .status-error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #f87171;
         }
     </style>
 </head>
@@ -196,22 +186,22 @@
             <div class="tag"><div class="tag-dot"></div> Anti-Clone Gateway</div>
         </div>
 
-        <button class="btn-verify" id="actionBtn" onclick="runDeviceVerification()">
+        <button class="btn-action" id="actionBtn" onclick="runDeviceVerification()">
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-container" id="statusBox" onclick="closeScreenNow()"></div>
+        <a class="btn-action btn-success-return" id="returnBtn" style="display: none;" href="#">
+            🚀 Return to Bot Now ➔
+        </a>
+
+        <div class="status-container" id="statusBox"></div>
     </div>
 
     <script>
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
-            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
-        }
-
-        function closeScreenNow() {
-            if (tg) tg.close();
+            if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
         }
 
         function getPermanentDeviceId() {
@@ -236,55 +226,55 @@
             return id;
         }
 
-        async function runDeviceVerification() {
+        function runDeviceVerification() {
             const btn = document.getElementById("actionBtn");
+            const returnBtn = document.getElementById("returnBtn");
             const box = document.getElementById("statusBox");
             const badge = document.getElementById("shieldBadge");
             const ring = document.getElementById("pulseRing");
 
             btn.disabled = true;
-            btn.innerText = "Authenticating Hardware...";
+            btn.innerText = "Authenticating...";
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
-            try {
-                const urlParams = new URLSearchParams(window.location.search);
-                const botUsername = urlParams.get("bot") || "amazon_gc_bot"; 
-                const persistentDeviceId = getPermanentDeviceId();
+            const urlParams = new URLSearchParams(window.location.search);
+            const botUsername = urlParams.get("bot") || "amazon_gc_bot"; 
+            const persistentDeviceId = getPermanentDeviceId();
 
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                badge.innerText = "✓";
-                badge.classList.add("badge-verified");
-                ring.style.display = "none";
-                document.getElementById("headline").innerText = "Hardware Authorized";
-                document.getElementById("subtext").innerText = "Closing screen & activating dashboard...";
-                btn.style.display = "none";
+            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            badge.innerText = "✓";
+            badge.classList.add("badge-verified");
+            ring.style.display = "none";
+            document.getElementById("headline").innerText = "Hardware Authorized";
+            document.getElementById("subtext").innerText = "Account activated! Returning to bot...";
+            
+            btn.style.display = "none";
 
-                box.className = "status-container status-success";
-                box.innerText = "✓ Verified! Returning to Bot...";
-                box.style.display = "block";
+            const deepLink = `tg://resolve?domain=${botUsername}&start=v_${persistentDeviceId}`;
+            const httpsLink = `https://t.me/${botUsername}?start=v_${persistentDeviceId}`;
 
-                const redirectUrl = `https://t.me/${botUsername}?start=v_${persistentDeviceId}`;
+            returnBtn.href = deepLink;
+            returnBtn.style.display = "flex";
 
-                // 1. Send deep-link to trigger /start v_...
+            box.className = "status-container status-success";
+            box.innerText = "✓ Verified! Unlocking Bot...";
+            box.style.display = "block";
+
+            // 1. Direct Telegram Native Protocol Trigger
+            window.location.href = deepLink;
+
+            // 2. Fallback WebApp Auto-Close
+            setTimeout(() => {
+                if (tg) tg.close();
+            }, 350);
+
+            // 3. Alternate close attempt if Telegram lags
+            setTimeout(() => {
                 if (tg && tg.openTelegramLink) {
-                    tg.openTelegramLink(redirectUrl);
-                } else {
-                    window.location.href = redirectUrl;
+                    tg.openTelegramLink(httpsLink);
                 }
-
-                // 2. Explicitly CLOSE the WebApp sheet
-                setTimeout(() => {
-                    if (tg) tg.close();
-                }, 300);
-
-            } catch (error) {
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                btn.disabled = false;
-                btn.innerText = "Retry Verification";
-                box.className = "status-container status-error";
-                box.innerText = "Trace failed. Check connection.";
-                box.style.display = "block";
-            }
+                if (tg) tg.close();
+            }, 900);
         }
     </script>
 </body>
