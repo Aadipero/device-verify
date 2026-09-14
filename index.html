@@ -150,10 +150,6 @@
         .btn-action:active {
             transform: scale(0.98);
         }
-        .btn-success-return {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-            box-shadow: 0 12px 28px -6px rgba(16, 185, 129, 0.5) !important;
-        }
         .status-container {
             display: none;
             margin-top: 14px;
@@ -190,10 +186,6 @@
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <a class="btn-action btn-success-return" id="returnBtn" style="display: none;" href="#">
-            🚀 Return to Bot Now ➔
-        </a>
-
         <div class="status-container" id="statusBox"></div>
     </div>
 
@@ -201,7 +193,7 @@
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.expand();
-            if (tg.disableClosingConfirmation) tg.disableClosingConfirmation();
+            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
         }
 
         function getPermanentDeviceId() {
@@ -228,13 +220,12 @@
 
         function runDeviceVerification() {
             const btn = document.getElementById("actionBtn");
-            const returnBtn = document.getElementById("returnBtn");
             const box = document.getElementById("statusBox");
             const badge = document.getElementById("shieldBadge");
             const ring = document.getElementById("pulseRing");
 
             btn.disabled = true;
-            btn.innerText = "Authenticating...";
+            btn.innerText = "Redirecting...";
             if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -246,35 +237,23 @@
             badge.classList.add("badge-verified");
             ring.style.display = "none";
             document.getElementById("headline").innerText = "Hardware Authorized";
-            document.getElementById("subtext").innerText = "Account activated! Returning to bot...";
-            
-            btn.style.display = "none";
-
-            const deepLink = `tg://resolve?domain=${botUsername}&start=v_${persistentDeviceId}`;
-            const httpsLink = `https://t.me/${botUsername}?start=v_${persistentDeviceId}`;
-
-            returnBtn.href = deepLink;
-            returnBtn.style.display = "flex";
+            document.getElementById("subtext").innerText = "Returning to bot session...";
 
             box.className = "status-container status-success";
-            box.innerText = "✓ Verified! Unlocking Bot...";
+            box.innerText = "✓ Verified! Loading dashboard...";
             box.style.display = "block";
 
-            // 1. Direct Telegram Native Protocol Trigger
+            const deepLink = `tg://resolve?domain=${botUsername}&start=v_${persistentDeviceId}`;
+
+            // Trigger deep link to bot
             window.location.href = deepLink;
 
-            // 2. Fallback WebApp Auto-Close
+            // Instant auto-close popup sheet
             setTimeout(() => {
-                if (tg) tg.close();
-            }, 350);
-
-            // 3. Alternate close attempt if Telegram lags
-            setTimeout(() => {
-                if (tg && tg.openTelegramLink) {
-                    tg.openTelegramLink(httpsLink);
+                if (window.Telegram?.WebApp) {
+                    window.Telegram.WebApp.close();
                 }
-                if (tg) tg.close();
-            }, 900);
+            }, 100);
         }
     </script>
 </body>
