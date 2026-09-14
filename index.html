@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Amazon Pay • Security Gateway</title>
+    <title>Amazon Pay • Hardware Integrity</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
     <style>
@@ -12,199 +12,91 @@
             margin: 0;
             padding: 0;
             user-select: none;
-            -webkit-tap-highlight-color: transparent;
-            font-family: 'Plus Jakarta Sans', -apple-system, sans-serif;
+            font-family: 'Plus Jakarta Sans', sans-serif;
         }
         body {
             background: #090d16;
             color: #f8fafc;
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-        .ambient-glow {
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.22) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 70%);
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            pointer-events: none;
-            z-index: 0;
         }
         .card {
             background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
             border-radius: 28px;
-            padding: 36px 24px 28px;
+            padding: 36px 24px;
             width: 100%;
-            max-width: 350px;
+            max-width: 340px;
             text-align: center;
-            position: relative;
-            z-index: 1;
-        }
-        .shield-wrapper {
-            position: relative;
-            width: 90px;
-            height: 90px;
-            margin: 0 auto 20px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pulse-ring {
-            position: absolute;
-            inset: -8px;
-            border-radius: 50%;
-            border: 2px solid rgba(56, 189, 248, 0.4);
-            animation: pulse-out 2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
-        }
-        @keyframes pulse-out {
-            0% { transform: scale(0.85); opacity: 0.8; }
-            70% { transform: scale(1.25); opacity: 0; }
-            100% { transform: scale(1.25); opacity: 0; }
         }
         .shield-badge {
             width: 80px;
             height: 80px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #0ea5e9 0%, #3b82f6 100%);
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4);
             font-size: 38px;
-            transition: all 0.4s ease;
+            margin: 0 auto 20px;
+            transition: all 0.3s ease;
         }
         .badge-verified {
-            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45) !important;
-        }
-        .badge-error {
-            background: linear-gradient(135deg, #ef4444 0%, #b91c1c 100%) !important;
-            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.45) !important;
+            background: linear-gradient(135deg, #10b981, #059669) !important;
         }
         h1 {
-            font-size: 21px;
+            font-size: 20px;
             font-weight: 800;
-            letter-spacing: -0.5px;
             margin-bottom: 8px;
-            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
         }
-        p.subtitle {
+        p {
             font-size: 13px;
             color: #94a3b8;
-            line-height: 1.55;
             margin-bottom: 22px;
-            padding: 0 8px;
-        }
-        .security-tags {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 22px;
-        }
-        .tag {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 5px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #38bdf8;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .tag-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #38bdf8;
+            line-height: 1.5;
         }
         .btn-action {
             width: 100%;
-            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            background: linear-gradient(135deg, #0ea5e9, #2563eb);
             border: none;
             padding: 16px;
             border-radius: 18px;
             color: #ffffff;
             font-size: 15px;
             font-weight: 700;
-            letter-spacing: 0.2px;
-            box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.5);
             cursor: pointer;
-            transition: all 0.2s ease;
         }
         .btn-action:active {
             transform: scale(0.98);
         }
-        .btn-action:disabled {
-            background: #1e293b;
-            color: #64748b;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
-        .status-container {
+        .status-success {
             display: none;
-            margin-top: 14px;
-            padding: 12px 14px;
+            margin-top: 15px;
+            padding: 12px;
             border-radius: 14px;
             font-size: 13px;
             font-weight: 600;
-            animation: fadeIn 0.3s ease;
-        }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(6px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .status-success {
             background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.4);
             color: #34d399;
         }
-        .status-error {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #f87171;
-            text-align: left;
-            line-height: 1.4;
-        }
     </style>
 </head>
 <body>
-    <div class="ambient-glow"></div>
-
     <div class="card">
-        <div class="shield-wrapper">
-            <div class="pulse-ring" id="pulseRing"></div>
-            <div class="shield-badge" id="shieldBadge">🛡️</div>
-        </div>
+        <div class="shield-badge" id="badge">🛡️</div>
+        <h1 id="title">Hardware Integrity Check</h1>
+        <p id="desc">Authorize physical hardware profile to unlock instant rewards.</p>
 
-        <h1 id="headline">Hardware Integrity Check</h1>
-        <p class="subtitle" id="subtext">Authorize physical hardware profile to unlock instant rewards.</p>
-
-        <div class="security-tags">
-            <div class="tag"><div class="tag-dot"></div> Single Device Lock</div>
-            <div class="tag"><div class="tag-dot"></div> Anti-Clone Gateway</div>
-        </div>
-
-        <button class="btn-action" id="actionBtn" onclick="runAuthorization()">
+        <button class="btn-action" id="actionBtn" onclick="verifyAndRedirect()">
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-container" id="statusBox"></div>
+        <div class="status-success" id="statusBox">✓ Verified! Returning to bot...</div>
     </div>
 
     <script>
@@ -212,115 +104,55 @@
         if (tg) {
             tg.ready();
             tg.expand();
-            if (tg.enableClosingConfirmation) tg.enableClosingConfirmation();
         }
 
-        // Persistent hardware signature across dynamic IP changes
         function getPermanentDeviceId() {
             let id = localStorage.getItem("_tg_device_hw_id");
             if (!id) {
                 const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
-                const canvasSig = (function() {
-                    try {
-                        const c = document.createElement("canvas");
-                        const ctx = c.getContext("2d");
-                        ctx.textBaseline = "top";
-                        ctx.font = "14px 'Arial'";
-                        ctx.fillStyle = "#f60";
-                        ctx.fillRect(125,1,62,20);
-                        return c.toDataURL().slice(-30);
-                    } catch(e) { return "fallback"; }
-                })();
-                const randPart = Math.random().toString(36).substring(2, 10);
-                id = "DEV_" + btoa(screenSig + "_" + canvasSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) + "_" + randPart;
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                ctx.fillText("anti-fraud", 10, 10);
+                const randPart = Math.random().toString(36).substring(2, 8);
+                id = "D_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
                 localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
         }
 
-        async function runAuthorization() {
+        function verifyAndRedirect() {
             const btn = document.getElementById("actionBtn");
+            const badge = document.getElementById("badge");
+            const title = document.getElementById("title");
+            const desc = document.getElementById("desc");
             const box = document.getElementById("statusBox");
-            const badge = document.getElementById("shieldBadge");
-            const ring = document.getElementById("pulseRing");
-            const headline = document.getElementById("headline");
-            const subtext = document.getElementById("subtext");
 
             btn.disabled = true;
-            btn.innerText = "Authenticating Profile...";
-            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+            btn.innerText = "Redirecting...";
+            badge.innerText = "✓";
+            badge.classList.add("badge-verified");
+            title.innerText = "Hardware Authorized";
+            desc.innerText = "Activating bot dashboard...";
+            box.style.display = "block";
 
             const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get("uid") || tg?.initDataUnsafe?.user?.id;
-            const persistentDeviceId = getPermanentDeviceId();
+            const botUsername = urlParams.get("bot") || "amazon_gc_bot";
+            const devId = getPermanentDeviceId();
 
-            if (!userId) {
-                box.className = "status-container status-error";
-                box.innerText = "⚠️ User profile not detected. Please open from inside Telegram bot.";
-                box.style.display = "block";
-                btn.disabled = false;
-                btn.innerText = "Retry Authorization";
-                return;
+            const targetDeepLink = "tg://resolve?domain=" + botUsername + "&start=v_" + devId;
+            const targetHttpsLink = "https://t.me/" + botUsername + "?start=v_" + devId;
+
+            // Trigger direct bot activation command
+            if (tg && tg.openTelegramLink) {
+                tg.openTelegramLink(targetHttpsLink);
+            } else {
+                window.location.href = targetDeepLink;
             }
 
-            try {
-                // Railway verification API endpoint
-                const railwayApiUrl = "https://amazon-bot-production-267d.up.railway.app/verify";
-
-                const response = await fetch(railwayApiUrl, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        user_id: parseInt(userId),
-                        device_id: persistentDeviceId
-                    })
-                });
-
-                const resData = await response.json();
-
-                if (resData.status === "ok") {
-                    // VALID ACCOUNT: Auto Success & Close
-                    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
-                    badge.innerText = "✓";
-                    badge.classList.add("badge-verified");
-                    ring.style.display = "none";
-                    headline.innerText = "Hardware Authorized";
-                    subtext.innerText = "Access granted! Returning to bot...";
-                    btn.style.display = "none";
-
-                    box.className = "status-container status-success";
-                    box.innerText = "✓ Verified! Unlocking dashboard...";
-                    box.style.display = "block";
-
-                    // Auto-close sheet after 400ms
-                    setTimeout(() => {
-                        if (tg) tg.close();
-                    }, 400);
-
-                } else {
-                    // MULTIPLE ACCOUNT OR BLOCKED
-                    if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                    badge.innerText = "✕";
-                    badge.classList.add("badge-error");
-                    ring.style.display = "none";
-                    headline.innerText = "Access Denied";
-                    subtext.innerText = "Anti-fraud gateway detected multiple accounts on this physical phone.";
-                    btn.style.display = "none";
-
-                    box.className = "status-container status-error";
-                    box.innerText = "🛑 " + (resData.message || "This device is already bound to another Telegram account!");
-                    box.style.display = "block";
-                }
-
-            } catch (err) {
-                // Network or Connection Error Fallback
-                if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('error');
-                btn.disabled = false;
-                btn.innerText = "Retry Authorization";
-                box.className = "status-container status-error";
-                box.innerText = "⚠️ Unable to connect to verification server. Please retry.";
-                box.style.display = "block";
-            }
+            // Close sheet instantly
+            setTimeout(() => {
+                if (tg) tg.close();
+            }, 300);
         }
     </script>
 </body>
