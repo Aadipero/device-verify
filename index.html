@@ -27,23 +27,11 @@
             position: relative;
             overflow: hidden;
         }
-        .ambient-glow {
-            position: absolute;
-            width: 320px;
-            height: 320px;
-            background: radial-gradient(circle, rgba(56, 189, 248, 0.25) 0%, rgba(99, 102, 241, 0.08) 50%, transparent 70%);
-            top: -50px;
-            left: 50%;
-            transform: translateX(-50%);
-            pointer-events: none;
-            z-index: 0;
-        }
         .card {
             background: rgba(15, 23, 42, 0.85);
             backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
             border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
             border-radius: 28px;
             padding: 36px 24px 28px;
             width: 100%;
@@ -51,27 +39,6 @@
             text-align: center;
             position: relative;
             z-index: 1;
-        }
-        .shield-wrapper {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            margin: 0 auto 24px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pulse-ring {
-            position: absolute;
-            inset: -8px;
-            border-radius: 50%;
-            border: 2px solid rgba(56, 189, 248, 0.4);
-            animation: pulse-out 2.2s cubic-bezier(0.24, 0, 0.38, 1) infinite;
-        }
-        @keyframes pulse-out {
-            0% { transform: scale(0.85); opacity: 0.8; }
-            70% { transform: scale(1.25); opacity: 0; }
-            100% { transform: scale(1.25); opacity: 0; }
         }
         .shield-badge {
             width: 86px;
@@ -83,51 +50,22 @@
             justify-content: center;
             box-shadow: 0 10px 25px rgba(14, 165, 233, 0.4);
             font-size: 40px;
-            transition: all 0.4s ease;
+            margin: 0 auto 24px;
         }
         .badge-verified {
             background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
-            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.45) !important;
         }
         h1 {
             font-size: 21px;
             font-weight: 800;
-            letter-spacing: -0.5px;
             margin-bottom: 8px;
-            background: linear-gradient(180deg, #ffffff 0%, #cbd5e1 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff;
         }
         p.subtitle {
             font-size: 13.5px;
             color: #94a3b8;
             line-height: 1.55;
             margin-bottom: 24px;
-            padding: 0 8px;
-        }
-        .security-tags {
-            display: flex;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 24px;
-        }
-        .tag {
-            background: rgba(30, 41, 59, 0.85);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 6px 12px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #38bdf8;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .tag-dot {
-            width: 6px;
-            height: 6px;
-            border-radius: 50%;
-            background: #38bdf8;
         }
         .btn-action {
             width: 100%;
@@ -138,76 +76,49 @@
             color: #ffffff;
             font-size: 15px;
             font-weight: 700;
-            letter-spacing: 0.2px;
-            box-shadow: 0 12px 28px -6px rgba(37, 99, 235, 0.5);
             cursor: pointer;
-            transition: all 0.2s ease;
         }
-        .btn-action:active {
-            transform: scale(0.98);
-        }
-        .status-container {
+        .btn-close {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            margin-top: 10px;
             display: none;
-            margin-top: 14px;
-            padding: 12px 16px;
-            border-radius: 14px;
-            font-size: 13px;
-            font-weight: 600;
-        }
-        .status-success {
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            color: #34d399;
         }
     </style>
 </head>
 <body>
-    <div class="ambient-glow"></div>
-
     <div class="card">
-        <div class="shield-wrapper">
-            <div class="pulse-ring" id="pulseRing"></div>
-            <div class="shield-badge" id="shieldBadge">🛡️</div>
-        </div>
-
+        <div class="shield-badge" id="shieldBadge">🛡️</div>
         <h1 id="headline">Hardware Integrity Check</h1>
-        <p class="subtitle" id="subtext">One-time authorization to prevent multiple accounts & unlock instant Amazon withdrawals.</p>
-
-        <div class="security-tags">
-            <div class="tag"><div class="tag-dot"></div> Single Device Lock</div>
-            <div class="tag"><div class="tag-dot"></div> Anti-Clone Gateway</div>
-        </div>
+        <p class="subtitle" id="subtext">One-time authorization to activate Amazon rewards.</p>
 
         <button class="btn-action" id="actionBtn" onclick="runDeviceVerification()">
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-container" id="statusBox"></div>
+        <button class="btn-action btn-close" id="manualCloseBtn" onclick="forceClose()">
+            ✕ Tap Here to Close & Return
+        </button>
     </div>
 
     <script>
         const tg = window.Telegram?.WebApp;
         if (tg) {
+            tg.ready();
             tg.expand();
+        }
+
+        function forceClose() {
+            if (window.Telegram?.WebApp) {
+                window.Telegram.WebApp.close();
+            }
         }
 
         function getPermanentDeviceId() {
             let id = localStorage.getItem("_tg_device_hw_id");
             if (!id) {
                 const screenSig = screen.width + "x" + screen.height + "_" + screen.colorDepth;
-                const canvasSig = (function() {
-                    try {
-                        const c = document.createElement("canvas");
-                        const ctx = c.getContext("2d");
-                        ctx.textBaseline = "top";
-                        ctx.font = "14px 'Arial'";
-                        ctx.fillStyle = "#f60";
-                        ctx.fillRect(125,1,62,20);
-                        return c.toDataURL().slice(-30);
-                    } catch(e) { return "fallback"; }
-                })();
                 const randPart = Math.random().toString(36).substring(2, 10);
-                id = "D_" + btoa(screenSig + "_" + canvasSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 10) + "_" + randPart;
+                id = "D_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
                 localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
@@ -215,39 +126,39 @@
 
         function runDeviceVerification() {
             const btn = document.getElementById("actionBtn");
-            const box = document.getElementById("statusBox");
+            const closeBtn = document.getElementById("manualCloseBtn");
             const badge = document.getElementById("shieldBadge");
-            const ring = document.getElementById("pulseRing");
 
             btn.disabled = true;
-            btn.innerText = "Redirecting...";
-            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
-
-            const urlParams = new URLSearchParams(window.location.search);
-            const botUsername = urlParams.get("bot") || "amazon_gc_bot"; 
-            const persistentDeviceId = getPermanentDeviceId();
-
-            if (tg?.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+            btn.innerText = "Authorized!";
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
-            ring.style.display = "none";
-            document.getElementById("headline").innerText = "Hardware Authorized";
-            document.getElementById("subtext").innerText = "Returning to bot session...";
+            
+            const persistentDeviceId = getPermanentDeviceId();
+            const urlParams = new URLSearchParams(window.location.search);
+            const botUsername = urlParams.get("bot") || "amazon_gc_bot";
 
-            box.className = "status-container status-success";
-            box.innerText = "✓ Verified! Loading dashboard...";
-            box.style.display = "block";
+            // Telegram Link Dispatch
+            const targetUrl = "tg://resolve?domain=" + botUsername + "&start=v_" + persistentDeviceId;
+            
+            // Step 1: Trigger intent
+            const iframe = document.createElement("iframe");
+            iframe.style.display = "none";
+            iframe.src = targetUrl;
+            document.body.appendChild(iframe);
 
-            const returnLink = `https://t.me/${botUsername}?start=v_${persistentDeviceId}`;
+            // Step 2: Show immediate manual close if Android blocks auto-close
+            closeBtn.style.display = "block";
 
-            // Telegram Native Redirect: Closes webapp & executes bot command
+            // Step 3: Hard Close WebApp
+            if (tg) {
+                tg.close();
+            }
             setTimeout(() => {
-                if (tg && tg.openTelegramLink) {
-                    tg.openTelegramLink(returnLink);
-                } else {
-                    window.location.href = returnLink;
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.close();
                 }
-            }, 250);
+            }, 150);
         }
     </script>
 </body>
