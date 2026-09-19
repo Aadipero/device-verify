@@ -117,11 +117,10 @@
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-success" id="statusBox">✓ Verified! Launching Dashboard...</div>
+        <div class="status-success" id="statusBox">✓ Verified! Opening dashboard...</div>
     </div>
 
     <script>
-        const BOT_TOKEN = "8824327960:AAEO_wyYbfuLRigvg78AZzOiaW0pmFg6_p4";
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -137,13 +136,13 @@
                 ctx.font = "14px Arial";
                 ctx.fillText("anti-fraud", 2, 2);
                 const randPart = Math.random().toString(36).substring(2, 8);
-                id = "D_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
+                id = "DEV_" + btoa(screenSig).replace(/[^a-zA-Z0-9]/g, "").slice(0, 8) + "_" + randPart;
                 localStorage.setItem("_tg_device_hw_id", id);
             }
             return id;
         }
 
-        async function runDirectVerification() {
+        function runDirectVerification() {
             const btn = document.getElementById("actionBtn");
             const badge = document.getElementById("badge");
             const title = document.getElementById("title");
@@ -155,32 +154,25 @@
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Opening dashboard in chat...";
+            desc.innerText = "Redirecting to chat...";
             box.style.display = "block";
 
             const devId = getPermanentDeviceId();
-            const userId = tg?.initDataUnsafe?.user?.id;
+            const urlParams = new URLSearchParams(window.location.search);
+            const botUsername = urlParams.get("bot");
 
-            if (userId) {
-                // Background Telegram API call: direct verify + launch dashboard
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            chat_id: userId,
-                            text: `/auto_verify_${userId}_${devId}`
-                        })
-                    });
-                } catch(err) {
-                    console.log(err);
+            if (botUsername) {
+                const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
+                if (tg && typeof tg.openTelegramLink === "function") {
+                    tg.openTelegramLink(targetUrl);
+                } else {
+                    window.location.href = targetUrl;
                 }
             }
 
-            // Window close - Chat me direct dashboard open milega
             setTimeout(() => {
                 if (tg) tg.close();
-            }, 500);
+            }, 300);
         }
     </script>
 </body>
