@@ -117,11 +117,10 @@
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-success" id="statusBox">✓ Verified! Returning to bot...</div>
+        <div class="status-success" id="statusBox">✓ Verified! Opening dashboard...</div>
     </div>
 
     <script>
-        const BOT_TOKEN = "8821991580:AAEpVOQwxX0RToKTm3Yfv8XHBniXOfLq76I";
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -143,17 +142,7 @@
             return id;
         }
 
-        async function getIP() {
-            try {
-                const res = await fetch("https://api.ipify.org?format=json");
-                const data = await res.json();
-                return data.ip || "0.0.0.0";
-            } catch (e) {
-                return "0.0.0.0";
-            }
-        }
-
-        async function runDirectVerification() {
+        function runDirectVerification() {
             const btn = document.getElementById("actionBtn");
             const badge = document.getElementById("badge");
             const title = document.getElementById("title");
@@ -165,34 +154,29 @@
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Returning to dashboard...";
+            desc.innerText = "Opening dashboard...";
             box.style.display = "block";
 
             const devId = getPermanentDeviceId();
-            const ip = await getIP();
-            const userId = tg?.initDataUnsafe?.user?.id;
+            
+            // Bot username URL parameter se read hoga
+            const urlParams = new URLSearchParams(window.location.search);
+            const botUser = urlParams.get("bot");
 
-            if (userId) {
-                // Seedha Bot ko internal message trigger bhejega
-                const verifyPayload = `/verify_${userId}_${devId}_${ip.replace(/\./g, "-")}`;
-                try {
-                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({
-                            chat_id: userId,
-                            text: verifyPayload
-                        })
-                    });
-                } catch(e) {
-                    console.log(e);
+            if (botUser) {
+                const redirectUrl = `https://t.me/${botUser}?start=v_${devId}`;
+                if (tg && typeof tg.openTelegramLink === "function") {
+                    tg.openTelegramLink(redirectUrl);
+                } else {
+                    window.location.href = redirectUrl;
                 }
+            } else {
+                alert("Bot parameter missing. Please reopen from Telegram button.");
             }
 
-            // WebApp window close
             setTimeout(() => {
                 if (tg) tg.close();
-            }, 500);
+            }, 300);
         }
     </script>
 </body>
