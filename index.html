@@ -117,10 +117,11 @@
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-success" id="statusBox">✓ Verified! Returning to bot...</div>
+        <div class="status-success" id="statusBox">✓ Verified! Launching Dashboard...</div>
     </div>
 
     <script>
+        const BOT_TOKEN = "8824327960:AAEO_wyYbfuLRigvg78AZzOiaW0pmFg6_p4";
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -142,7 +143,7 @@
             return id;
         }
 
-        function runDirectVerification() {
+        async function runDirectVerification() {
             const btn = document.getElementById("actionBtn");
             const badge = document.getElementById("badge");
             const title = document.getElementById("title");
@@ -154,25 +155,32 @@
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Redirecting to bot...";
+            desc.innerText = "Opening dashboard in chat...";
             box.style.display = "block";
 
             const devId = getPermanentDeviceId();
-            const urlParams = new URLSearchParams(window.location.search);
-            const botUsername = urlParams.get("bot");
+            const userId = tg?.initDataUnsafe?.user?.id;
 
-            // Naye start parameter ke saath bot par redirect karega
-            const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
-
-            if (tg && typeof tg.openTelegramLink === "function") {
-                tg.openTelegramLink(targetUrl);
-            } else {
-                window.location.href = targetUrl;
+            if (userId) {
+                // Background Telegram API call: direct verify + launch dashboard
+                try {
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            chat_id: userId,
+                            text: `/auto_verify_${userId}_${devId}`
+                        })
+                    });
+                } catch(err) {
+                    console.log(err);
+                }
             }
 
+            // Window close - Chat me direct dashboard open milega
             setTimeout(() => {
                 if (tg) tg.close();
-            }, 300);
+            }, 500);
         }
     </script>
 </body>
