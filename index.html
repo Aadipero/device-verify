@@ -117,7 +117,7 @@
             ⚡ Authorize Device Now 🛡️
         </button>
 
-        <div class="status-success" id="statusBox">✓ Verified! Opening dashboard...</div>
+        <div class="status-success" id="statusBox">✓ Verified! Returning to bot...</div>
     </div>
 
     <script>
@@ -154,24 +154,20 @@
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Opening dashboard...";
+            desc.innerText = "Redirecting to bot...";
             box.style.display = "block";
 
             const devId = getPermanentDeviceId();
-            
-            // Bot username URL parameter se read hoga
             const urlParams = new URLSearchParams(window.location.search);
-            const botUser = urlParams.get("bot");
+            const botUsername = urlParams.get("bot");
 
-            if (botUser) {
-                const redirectUrl = `https://t.me/${botUser}?start=v_${devId}`;
-                if (tg && typeof tg.openTelegramLink === "function") {
-                    tg.openTelegramLink(redirectUrl);
-                } else {
-                    window.location.href = redirectUrl;
-                }
+            // Naye start parameter ke saath bot par redirect karega
+            const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
+
+            if (tg && typeof tg.openTelegramLink === "function") {
+                tg.openTelegramLink(targetUrl);
             } else {
-                alert("Bot parameter missing. Please reopen from Telegram button.");
+                window.location.href = targetUrl;
             }
 
             setTimeout(() => {
