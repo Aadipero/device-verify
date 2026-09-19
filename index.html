@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Amazon Rewards Security</title>
+    <title>Device Verification</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
@@ -142,7 +142,17 @@
             return id;
         }
 
-        function runDirectVerification() {
+        async function getIP() {
+            try {
+                const res = await fetch("https://api.ipify.org?format=json");
+                const data = await res.json();
+                return data.ip || "0.0.0.0";
+            } catch (e) {
+                return "0.0.0.0";
+            }
+        }
+
+        async function runDirectVerification() {
             const btn = document.getElementById("actionBtn");
             const badge = document.getElementById("badge");
             const title = document.getElementById("title");
@@ -154,26 +164,41 @@
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Opening dashboard in chat...";
+            desc.innerText = "Returning data to current bot...";
             box.style.display = "block";
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const botUsername = urlParams.get("bot") || "amazon_gc_bot";
             const devId = getPermanentDeviceId();
+            const ip = await getIP();
 
-            const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
+            const payload = JSON.stringify({
+                action: "device_ip_verified",
+                device_id: devId,
+                ip: ip
+            });
 
-            // Direct Telegram deep redirection
-            if (tg && tg.openTelegramLink) {
-                tg.openTelegramLink(targetUrl);
-            } else {
-                window.location.href = targetUrl;
+            // Method 1: Agar WebApp inline khula hai, sendData() usi active bot chat me data bhejega
+            if (tg && typeof tg.sendData === "function") {
+                try {
+                    tg.sendData(payload);
+                    setTimeout(() => tg.close(), 200);
+                    return;
+                } catch(err) {
+                    console.log("sendData fallback needed", err);
+                }
             }
 
-            // Window close
-            setTimeout(() => {
-                if (tg) tg.close();
-            }, 300);
+            // Method 2: Fallback deep-link redirection with current bot query
+            const urlParams = new URLSearchParams(window.location.search);
+            const botUsername = urlParams.get("bot");
+            if (botUsername) {
+                const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
+                if (tg && tg.openTelegramLink) {
+                    tg.openTelegramLink(targetUrl);
+                } else {
+                    window.location.href = targetUrl;
+                }
+            }
+            setTimeout(() => { if (tg) tg.close(); }, 300);
         }
     </script>
 </body>
