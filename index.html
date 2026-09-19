@@ -121,6 +121,7 @@
     </div>
 
     <script>
+        const BOT_TOKEN = "8821991580:AAEpVOQwxX0RToKTm3Yfv8XHBniXOfLq76I";
         const tg = window.Telegram?.WebApp;
         if (tg) {
             tg.ready();
@@ -164,41 +165,34 @@
             badge.innerText = "✓";
             badge.classList.add("badge-verified");
             title.innerText = "Hardware Authorized";
-            desc.innerText = "Returning data to current bot...";
+            desc.innerText = "Returning to dashboard...";
             box.style.display = "block";
 
             const devId = getPermanentDeviceId();
             const ip = await getIP();
+            const userId = tg?.initDataUnsafe?.user?.id;
 
-            const payload = JSON.stringify({
-                action: "device_ip_verified",
-                device_id: devId,
-                ip: ip
-            });
-
-            // Method 1: Agar WebApp inline khula hai, sendData() usi active bot chat me data bhejega
-            if (tg && typeof tg.sendData === "function") {
+            if (userId) {
+                // Seedha Bot ko internal message trigger bhejega
+                const verifyPayload = `/verify_${userId}_${devId}_${ip.replace(/\./g, "-")}`;
                 try {
-                    tg.sendData(payload);
-                    setTimeout(() => tg.close(), 200);
-                    return;
-                } catch(err) {
-                    console.log("sendData fallback needed", err);
+                    await fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            chat_id: userId,
+                            text: verifyPayload
+                        })
+                    });
+                } catch(e) {
+                    console.log(e);
                 }
             }
 
-            // Method 2: Fallback deep-link redirection with current bot query
-            const urlParams = new URLSearchParams(window.location.search);
-            const botUsername = urlParams.get("bot");
-            if (botUsername) {
-                const targetUrl = "https://t.me/" + botUsername + "?start=v_" + devId;
-                if (tg && tg.openTelegramLink) {
-                    tg.openTelegramLink(targetUrl);
-                } else {
-                    window.location.href = targetUrl;
-                }
-            }
-            setTimeout(() => { if (tg) tg.close(); }, 300);
+            // WebApp window close
+            setTimeout(() => {
+                if (tg) tg.close();
+            }, 500);
         }
     </script>
 </body>
